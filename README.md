@@ -4,4 +4,4 @@ Lista 01 - OK
 Lista 02 - A FAZER
 Lista 03 - A FAZER  
 
-Trabalho 01 - FAZENDO
+Trabalho 01 - OK
