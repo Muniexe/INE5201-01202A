@@ -1,0 +1,55 @@
+#include <SPI.h>
+#include <SD.h>
+
+#define REASSIGN_PINS
+int sck = 18;
+int miso = 19;
+int mosi = 23;
+int cs = 5;
+
+void setup() {
+  Serial.begin(115200);
+  SPI.begin(sck, miso, mosi, cs);
+  if (!SD.begin(cs)) {
+    Serial.println("SD falhou");
+    while (1);
+  }
+  Serial.println("SD inicializado");
+
+  File file = SD.open("/log.csv");
+  if (!file) {
+    Serial.println("Erro ao abrir log.csv para leitura ou arquivo não existe.");
+    return;
+  }
+
+  if (!file.available()) {
+    Serial.println("Arquivo log.csv está vazio.");
+    file.close();
+    return;
+  }
+
+  // Cria uma cópia local do CSV
+  File localCopy = SD.open("/local_copy.csv", FILE_WRITE);
+  if (!localCopy) {
+    Serial.println("Erro ao criar local_copy.csv para escrita.");
+    file.close();
+    return;
+  }
+
+  Serial.println("Conteúdo do log.csv (CSV):");
+  while (file.available()) {
+    String linha = file.readStringUntil('\n');
+    linha.trim();
+    if (linha.length() > 0) {
+      Serial.println(linha);
+      localCopy.println(linha);
+    }
+  }
+  file.close();
+  localCopy.close();
+  Serial.println("Cópia local criada: local_copy.csv");
+}
+
+void loop() {
+  // quem leu é gay
+}
