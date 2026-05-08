@@ -1,55 +1,77 @@
 #include <SPI.h>
 #include <SD.h>
 
-#define REASSIGN_PINS
-int sck = 18;
-int miso = 19;
-int mosi = 23;
-int cs = 5;
+/*
+LIGAÇÕES DO MÓDULO SD NO ESP32
+
+SD -> ESP32
+VCC -> 5V
+GND -> GND
+MISO -> GPIO19
+MOSI -> GPIO23
+SCK -> GPIO18
+CS -> GPIO5
+*/
+
+#define SD_CS 5
+
+File arquivo;
 
 void setup() {
+
   Serial.begin(115200);
-  SPI.begin(sck, miso, mosi, cs);
-  if (!SD.begin(cs)) {
-    Serial.println("SD falhou");
+
+  Serial.println("Iniciando SD Card...");
+
+  // Inicializa SPI do ESP32
+  SPI.begin(18, 19, 23, SD_CS);
+
+  // Inicializa SD
+  if (!SD.begin(SD_CS)) {
+    Serial.println("Erro no SD Card!");
     while (1);
   }
-  Serial.println("SD inicializado");
 
-  File file = SD.open("/log.csv");
-  if (!file) {
-    Serial.println("Erro ao abrir log.csv para leitura ou arquivo não existe.");
-    return;
-  }
+  Serial.println("SD Card OK!");
 
-  if (!file.available()) {
-    Serial.println("Arquivo log.csv está vazio.");
-    file.close();
-    return;
-  }
+  // Abre/cria arquivo
+  arquivo = SD.open("/DADOS.TXT", FILE_WRITE);
 
-  // Cria uma cópia local do CSV
-  File localCopy = SD.open("/local_copy.csv", FILE_WRITE);
-  if (!localCopy) {
-    Serial.println("Erro ao criar local_copy.csv para escrita.");
-    file.close();
-    return;
-  }
+  if (arquivo) {
 
-  Serial.println("Conteúdo do log.csv (CSV):");
-  while (file.available()) {
-    String linha = file.readStringUntil('\n');
-    linha.trim();
-    if (linha.length() > 0) {
-      Serial.println(linha);
-      localCopy.println(linha);
-    }
+    Serial.println("Escrevendo dados...");
+
+    int temperatura = 25;
+    float tensao = 4.87;
+
+    arquivo.print("Temperatura: ");
+    arquivo.print(temperatura);
+    arquivo.println(" C");
+
+    arquivo.print("Tensao: ");
+    arquivo.print(tensao);
+    arquivo.println(" V");
+
+    arquivo.println("----------------");
+
+    // força salvar
+    arquivo.flush();
+
+    // fecha arquivo
+    arquivo.close();
+
+    Serial.println("Dados salvos!");
+
+  } else {
+
+    Serial.println("Erro ao abrir arquivo.");
+
   }
-  file.close();
-  localCopy.close();
-  Serial.println("Cópia local criada: local_copy.csv");
 }
 
+void loop() {
+
+}
 void loop() {
   // quem leu é gay
 }
